@@ -7,17 +7,18 @@
     void yyerror(char *s) {
         std::cerr << s << "\n";
     }
+
+    #define YYSTYPE std::string
 %}
 
 %token IF ELSE
 %token EQ LESS GR LESS_EQ GR_EQ NOT_EQ NOT AND OR
 %token ASSIGN
 %token VAR NUM
-%token EOL
 
 %%
 
-
+PROGRAM: NUM
 
 %%
 

@@ -1,32 +1,31 @@
 %{
-    #include <val_bison.h>
+    #include "interp_bison.hpp"
 %}
 
-%yylineno
-%noyywrap
+%option yylineno
+%option noyywrap
 
 %%
 
-[\][\].*\n              ;
+[/][/].*\n              ;
 [0-9]+                  {
-                            yylval = yytext;
+                            yylval = *yytext;
                             return NUM;
                         }
 [a-zA-Z_][a-zA-Z0-9_]   {
-                            yyval = yytext;
+                            yylval = *yytext;
                             return VAR;
                         }
-[\n]                    return EOL;
-[ \t\r]                 ;
+[ \t\r\n]               ;
 if                      return IF;
 else                    return ELSE;
 ==                      return EQ;
-<=                      return LESS_EQ;
+[<]=                    return LESS_EQ;
 >=                      return GR_EQ;
-<                       return LESS;
+[<]                     return LESS;
 >                       return GR;
 &&                      return AND;
-||                      return OR;
+[|][|]                      return OR;
 =                       return ASSIGN;
 
 [-*+/]                  return *yytext;
