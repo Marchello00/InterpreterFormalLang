@@ -30,13 +30,15 @@ CMD:                    '{' CMDS '}'
 |                       IF '(' EXPR ')' CMD ELSE CMD
 ;
 EXPR:                   LOGIC_EXPR
-|                       ARITH_EXPR
 |                       ASSIGNING
 |                       CREATING
 ;
-CREATING:               INT VAR ASSIGN EXPR
+CREATING:               VAR_TYPE VAR ASSIGN EXPR
+|                       VAR_TYPE VAR
 ;
 ASSIGNING:              VAR ASSIGN EXPR
+;
+VAR_TYPE:               INT
 ;
 LOGIC_EXPR:             LOGIC_AND_EXPR
 |                       LOGIC_EXPR OR LOGIC_AND_EXPR
