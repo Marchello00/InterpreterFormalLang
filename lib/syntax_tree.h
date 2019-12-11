@@ -1,3 +1,9 @@
+#include <utility>
+
+#include <utility>
+
+#include <utility>
+
 #ifndef SYNTAX_TREE_H
 #define SYNTAX_TREE_H
 
@@ -6,9 +12,15 @@
 
 enum class NodeType {
     OPERATOR,
-    OPERATOR_LIST,
-    INTEGER_CONSTANT,
+    COMMAND,
+    COMMAND_LIST,
+    CONSTANT,
     VARIABLE,
+    TYPE,
+};
+
+enum class TypeIdentifyer {
+    INT_T,
 };
 
 class Node {
@@ -17,7 +29,9 @@ public:
         return type_;
     }
 
-    Node(NodeType type) : type_(type) {}
+    explicit Node(NodeType type) : type_(type) {}
+
+    virtual void print(int depth, std::ostream &out) {};
 
 private:
     const NodeType type_;
@@ -25,76 +39,161 @@ private:
 
 class ExpressionNode : public Node {
 public:
-    ExpressionNode(NodeType type) :
+    explicit ExpressionNode(NodeType type) :
             Node(type) {}
 };
 
-class NodesListNode : public Node {
+class CmdNode : public Node {
 public:
-    NodesListNode() : Node(NodeType::OPERATOR_LIST) {}
+    explicit CmdNode(Node *cmd) :
+            Node(NodeType::COMMAND), cmd_(cmd) {}
 
-    void addNode(Node *node) {
-        nodes_.push_back(node);
+    void setSimple() {
+        simple_ = true;
     }
 
-    ~NodesListNode() {
-        for (auto node : nodes_) {
-            delete node;
+    void print(int depth, std::ostream &out) override {
+        if (cmd_->type() == NodeType::COMMAND_LIST) {
+            out << std::string(depth, '\t') << "{\n";
+            cmd_->print(depth + 1, out);
+            out << "}\n";
+        } else if (simple_) {
+            out << std::string(depth, '\t');
+            cmd_->print(0, out);
+            out << ";\n";
+        } else {
+            cmd_->print(depth, out);
         }
     }
 
 private:
-    std::vector<Node *> nodes_;
+    Node *cmd_;
+    bool simple_ = false;
 };
 
-class IntValueNode : public ExpressionNode {
+class CmdListNode : public Node {
 public:
-    int value() const {
-        return value_;
+    CmdListNode() : Node(NodeType::COMMAND_LIST) {}
+
+    explicit CmdListNode(CmdNode *cmd) : CmdListNode() {
+        addCmd(cmd);
     }
 
-    IntValueNode(int value = 0) :
-            ExpressionNode(NodeType::INTEGER_CONSTANT), value_(value) {}
+    void addCmd(Node *cmd) {
+        cmds_.push_back(cmd);
+    }
 
-    IntValueNode(const std::string &str) :
-            ExpressionNode(NodeType::INTEGER_CONSTANT) {
-                value_ = strtol(str.c_str(), NULL, 10);
-            }
+    ~CmdListNode() {
+        for (auto cmd : cmds_) {
+            delete cmd;
+        }
+    }
+
+    void print(int depth, std::ostream &out) override {
+        for (auto cmd : cmds_) {
+            cmd->print(depth, out);
+        }
+    }
 
 private:
-    int value_;
+    std::vector<Node *> cmds_;
+};
+
+class TypeNode : public Node {
+public:
+    explicit TypeNode(TypeIdentifyer type_id) :
+            Node(NodeType::TYPE), type_id_(type_id) {}
+
+    void print(int depth, std::ostream &out) override {
+        switch (type_id_) {
+            case (TypeIdentifyer::INT_T): {
+                out << "int";
+                break;
+            }
+        }
+    }
+
+private:
+    TypeIdentifyer type_id_;
+};
+
+class ValueNode : public ExpressionNode {
+public:
+    ValueNode(std::string value, TypeNode *type_n) :
+            ExpressionNode(NodeType::CONSTANT),
+            value_(std::move(value)), type_n_(type_n) {}
+
+    ~ValueNode() {
+        delete type_n_;
+    }
+
+    void print(int depth, std::ostream &out) override {
+        out << value_;
+    }
+
+private:
+    std::string value_;
+    TypeNode *type_n_;
+};
+
+class IntValueNode : public ValueNode {
+public:
+    int value() const {
+        return int_value_;
+    }
+
+    explicit IntValueNode(const std::string &value) :
+            ValueNode(value, new TypeNode(TypeIdentifyer::INT_T)) {
+        int_value_ = strtol(value.c_str(), nullptr, 10);
+    }
+
+private:
+    int int_value_;
 };
 
 class VariableNode : public ExpressionNode {
 public:
-    VariableNode(const std::string &name) :
-            ExpressionNode(NodeType::VARIABLE), name_(name.c_str()) {}
+    explicit VariableNode(std::string name) :
+            ExpressionNode(NodeType::VARIABLE), name_(std::move(name)) {}
 
-    VariableNode(const char *name) :
-            ExpressionNode(NodeType::VARIABLE), name_(name) {}
+    void print(int depth, std::ostream &out) override {
+        out << name_;
+    }
 
 private:
-    const char *name_;
+    std::string name_;
 };
 
 class OperatorNode : public ExpressionNode {
 public:
-    OperatorNode(const char *oper = NULL) :
-            ExpressionNode(NodeType::OPERATOR), oper_(oper) {}
+    explicit OperatorNode(std::string oper = "") :
+            ExpressionNode(NodeType::OPERATOR), oper_(std::move(oper)) {}
+
+    void print(int depth, std::ostream &out) override {
+        out << oper_;
+    }
 
 private:
-    const char *oper_;
+    std::string oper_;
 };
 
 class BinaryOperator : public OperatorNode {
 public:
     BinaryOperator(ExpressionNode *left, ExpressionNode *right,
-                   const char *oper = NULL) :
+                   const std::string &oper = "") :
             OperatorNode(oper), left_(left), right_(right) {}
 
     ~BinaryOperator() {
         delete left_;
         delete right_;
+    }
+
+    void print(int depth, std::ostream &out) override {
+        left_->print(depth, out);
+        out << " ";
+        OperatorNode::print(depth, out);
+        out << " ";
+        right_->print(depth, out);
     }
 
 private:
@@ -104,11 +203,16 @@ private:
 
 class UnaryOperator : public OperatorNode {
 public:
-    UnaryOperator(ExpressionNode *arg, const char *oper = NULL) :
+    explicit UnaryOperator(ExpressionNode *arg, const std::string &oper = "") :
             OperatorNode(oper), arg_(arg) {}
 
     ~UnaryOperator() {
         delete arg_;
+    }
+
+    void print(int depth, std::ostream &out) override {
+        OperatorNode::print(depth, out);
+        arg_->print(depth, out);
     }
 
 private:
@@ -117,13 +221,13 @@ private:
 
 class NotOperator : public UnaryOperator {
 public:
-    NotOperator(ExpressionNode *arg) :
+    explicit NotOperator(ExpressionNode *arg) :
             UnaryOperator(arg, "!") {}
 };
 
 class UnaryMinusOperator : public UnaryOperator {
 public:
-    UnaryMinusOperator(ExpressionNode *arg) :
+    explicit UnaryMinusOperator(ExpressionNode *arg) :
             UnaryOperator(arg, "-") {}
 };
 
@@ -169,6 +273,12 @@ public:
             BinaryOperator(left, right, "==") {}
 };
 
+class NotEqOperator : public BinaryOperator {
+public:
+    NotEqOperator(ExpressionNode *left, ExpressionNode *right) :
+            BinaryOperator(left, right, "!=") {}
+};
+
 class LessOperator : public BinaryOperator {
 public:
     LessOperator(ExpressionNode *left, ExpressionNode *right) :
@@ -193,17 +303,65 @@ public:
             BinaryOperator(left, right, ">=") {}
 };
 
-class AssignOperator : public BinaryOperator {
+class AssignOperator : public OperatorNode {
 public:
-    AssignOperator(ExpressionNode *left, ExpressionNode *right) :
-            BinaryOperator(left, right, "=") {}
+    AssignOperator(const std::string &var_name, ExpressionNode *expression) :
+            AssignOperator(new VariableNode(var_name), expression) {}
+
+    AssignOperator(VariableNode *variable, ExpressionNode *expression) :
+            OperatorNode("="), variable_(variable), expression_(expression) {}
+
+    void print(int depth, std::ostream &out) override {
+        variable_->print(depth, out);
+        out << " ";
+        OperatorNode::print(depth, out);
+        out << " ";
+        expression_->print(depth, out);
+    }
+
+private:
+    VariableNode *variable_;
+    ExpressionNode *expression_;
+};
+
+class CreateOperator : public OperatorNode {
+public:
+    CreateOperator(TypeNode *var_type, const std::string &var_name,
+                   ExpressionNode *expression = nullptr) :
+            CreateOperator(var_type, new VariableNode(var_name),
+                           expression) {}
+
+    CreateOperator(TypeIdentifyer type, const std::string &var_name,
+                   ExpressionNode *expression = nullptr) :
+            CreateOperator(new TypeNode(type), new VariableNode(var_name),
+                           expression) {}
+
+    CreateOperator(TypeNode *var_type, VariableNode *var,
+                   ExpressionNode *expression = nullptr) :
+            OperatorNode("="),
+            var_type_(var_type), var_(var), expression_(expression) {}
+
+    void print(int depth, std::ostream &out) override {
+        var_type_->print(depth, out);
+        out << " ";
+        var_->print(depth, out);
+        out << " ";
+        OperatorNode::print(depth, out);
+        out << " ";
+        expression_->print(depth, out);
+    }
+
+private:
+    TypeNode *var_type_;
+    VariableNode *var_;
+    ExpressionNode *expression_;
 };
 
 class IfOperatorNode : public OperatorNode {
 public:
     IfOperatorNode(ExpressionNode *condition,
-                   NodesListNode *true_branch,
-                   NodesListNode *false_branch = NULL) :
+                   CmdNode *true_branch,
+                   CmdNode *false_branch = nullptr) :
             condition_(condition),
             true_branch_(true_branch),
             false_branch_(false_branch) {}
@@ -214,10 +372,20 @@ public:
         delete false_branch_;
     }
 
+    void print(int depth, std::ostream &out) override {
+        auto tab = std::string(depth, '\t');
+        out << tab << "if (";
+        condition_->print(depth, out);
+        out << ")\n";
+        true_branch_->print(depth, out);
+        out << tab << "else\n";
+        false_branch_->print(depth, out);
+    }
+
 private:
     ExpressionNode *condition_;
-    NodesListNode *true_branch_;
-    NodesListNode *false_branch_;
+    CmdNode *true_branch_;
+    CmdNode *false_branch_;
 };
 
 #endif // SYNTAX_TREE_H
