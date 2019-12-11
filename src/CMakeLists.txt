@@ -47,3 +47,5 @@ add_executable(interpreter
         interp_bison.cpp
         interp_flex.cpp
         )
+
+target_compile_options(interpreter PRIVATE -Wno-deprecated-register)

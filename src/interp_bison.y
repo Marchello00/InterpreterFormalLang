@@ -1,5 +1,7 @@
 %{
+    #include <syntax_tree.h>
     #include <iostream>
+    #include <cstdlib>
 
     extern int yylineno;
     extern int yylex();
@@ -9,14 +11,26 @@
         exit(1);
     }
 
-    #define YYSTYPE std::string
+    typedef struct {
+        std::string str;
+        ExpressionNode *expr;
+        NodesListNode *cmds;
+        OperatorNode  *oper;
+    } YYSTYPE_struct;
+
+    #define YYSTYPE YYSTYPE_struct
 %}
 
 %token IF ELSE
 %token EQ LESS GR LESS_EQ GR_EQ NOT_EQ NOT AND OR
 %token ASSIGN
-%token INT
-%token VAR NUM
+%token INT VAR NUM
+
+%type<cmds> CMDS
+%type<expr> CMD EXPR CREATING ASSIGNING VAR_TYPE LOGIC_EXPR
+%type<expr> LOGIC_AND_EXPR LOGIC_CMP_EXPR LOGIC_FINAL_EXPR
+%type<expr> ARITH_EXPR ARITH_MUL_EXPR ARITH_FINAL_EXPR
+%type<str> VAR NUM
 
 %%
 
@@ -66,12 +80,10 @@ ARITH_MUL_EXPR:         ARITH_FINAL_EXPR
 |                       ARITH_FINAL_EXPR '*' ARITH_MUL_EXPR
 |                       ARITH_FINAL_EXPR '/' ARITH_MUL_EXPR
 ;
-ARITH_FINAL_EXPR:       '(' EXPR ')'
-|                       '-' '(' EXPR ')'
-|                       NUM
-|                       '-' NUM
-|                       VAR
-|                       '-' VAR
+ARITH_FINAL_EXPR:       '(' EXPR ')'                            {$$ = $2}
+|                       NUM                                     {$$ = new IntValueNode($1);}
+|                       VAR                                     {$$ = new VariableNode($1);}
+|                       '-' ARITH_FINAL_EXPR                    {$$ = new UnaryMinusOperator($2);}
 ;
 %%
 
