@@ -37,8 +37,8 @@
 %type<str> VAR NUM
 
 %%
-
-PROGRAM:                CMDS                                    {$1->print(0, std::cout); delete $1;}
+PROGRAM:                PROGRAM CMD                             {$2->print(0, std::cout); delete $2;}
+|                       CMD                                     {$1->print(0, std::cout); delete $1;}
 ;
 CMDS:                   CMDS CMD                                {
                                                                     $$ = $1;
