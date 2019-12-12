@@ -53,12 +53,13 @@ public:
     }
 
     void print(int depth, std::ostream &out) override {
+        auto tab = std::string(depth, '\t');
         if (cmd_->type() == NodeType::COMMAND_LIST) {
-            out << std::string(depth, '\t') << "{\n";
+            out << tab << "{\n";
             cmd_->print(depth + 1, out);
-            out << "}\n";
+            out << tab << "}\n";
         } else if (simple_) {
-            out << std::string(depth, '\t');
+            out << tab;
             cmd_->print(0, out);
             out << ";\n";
         } else {

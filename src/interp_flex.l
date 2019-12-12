@@ -12,7 +12,7 @@
 
 [/][/].*\n              ;
 [0-9]+                  {
-                            yylval = *yytext;
+                            yylval = yytext;
                             return NUM;
                         }
 [ \t\r\n]               ;
@@ -20,7 +20,7 @@ int                     return INT;
 if                      return IF;
 else                    return ELSE;
 [a-zA-Z_][a-zA-Z0-9_]*  {
-                            yylval = *yytext;
+                            yylval = yytext;
                             return VAR;
                         }
 ==                      return EQ;
