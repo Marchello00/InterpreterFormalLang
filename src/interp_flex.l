@@ -2,7 +2,8 @@
     #include <string>
     #define YYSTYPE std::string
     #include "interp_bison.hpp"
-    void yyerror(char *s);
+    #include <syntax_tree.h>
+    void yyerror(CmdListNode **root, const std::string &s);
 %}
 
 %option yylineno
@@ -32,5 +33,5 @@ else                    return ELSE;
 [|][|]                  return OR;
 =                       return ASSIGN;
 [-*+/{};(),]            return *yytext;
-.                       yyerror("Invalid character");
+.                       yyerror(nullptr, "Invalid character");
 %%

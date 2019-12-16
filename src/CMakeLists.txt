@@ -46,6 +46,7 @@ LEX_FILE(interp_flex.l)
 add_executable(interpreter
         interp_bison.cpp
         interp_flex.cpp
+        main.cpp
         )
 
 target_compile_options(interpreter PRIVATE -Wno-deprecated-register)

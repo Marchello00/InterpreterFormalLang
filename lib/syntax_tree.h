@@ -21,7 +21,6 @@ enum class NodeType {
 
 enum class TypeIdentifyer {
     INT_T,
-    ANY,
 };
 
 class Node {

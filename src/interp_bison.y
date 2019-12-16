@@ -6,7 +6,7 @@
     extern int yylineno;
     extern int yylex();
 
-    void yyerror(char *s) {
+    void yyerror(CmdListNode **root, const std::string &s) {
         std::cerr << s << "\n";
         exit(1);
     }
@@ -36,10 +36,10 @@
 %type<expr> ARITH_EXPR ARITH_MUL_EXPR ARITH_FINAL_EXPR
 %type<str> VAR NUM
 
+%parse-param {CmdListNode **root}
+
 %%
-PROGRAM:                PROGRAM CMD                             {$2->print(0, std::cout); delete $2;}
-|                       CMD                                     {$1->print(0, std::cout); delete $1;}
-;
+PROGRAM:                CMDS                                    {*root = $1}
 CMDS:                   CMDS CMD                                {
                                                                     $$ = $1;
                                                                     $$->addCmd($2);
@@ -93,11 +93,3 @@ ARITH_FINAL_EXPR:       '(' EXPR ')'                            {$$ = $2}
 |                       '-' ARITH_FINAL_EXPR                    {$$ = new UnaryMinusOperator($2);}
 ;
 %%
-
-int main(int argc, char *argv[]) {
-    if (argc > 1) {
-        freopen(argv[1], "r", stdin);
-    }
-    yydebug = 0;
-    return yyparse();
-}
