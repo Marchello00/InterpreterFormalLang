@@ -22,7 +22,7 @@ MACRO(YACC_FILE _filename)
     ADD_CUSTOM_COMMAND(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.h
-            COMMAND ${YACC_EXE} -d
+            COMMAND ${YACC_EXE} -td
             --output=${_basename}.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
             DEPENDS ${_filename}
@@ -46,4 +46,7 @@ LEX_FILE(interp_flex.l)
 add_executable(interpreter
         interp_bison.cpp
         interp_flex.cpp
+        main.cpp
         )
+
+target_compile_options(interpreter PRIVATE -Wno-deprecated-register)
