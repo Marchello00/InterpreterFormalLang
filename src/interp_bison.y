@@ -27,11 +27,12 @@
 %token EQ LESS GR LESS_EQ GR_EQ NOT_EQ NOT AND OR
 %token ASSIGN
 %token INT VAR NUM
+%token READ_INT WRITE
 
 %type<cmd> CMD
 %type<cmd_list> CMDS
 %type<var_type> VAR_TYPE
-%type<expr> EXPR CREATING ASSIGNING LOGIC_EXPR
+%type<expr> EXPR CREATING ASSIGNING LOGIC_EXPR FUNCTION_CALL
 %type<expr> LOGIC_AND_EXPR LOGIC_CMP_EXPR LOGIC_FINAL_EXPR
 %type<expr> ARITH_EXPR ARITH_MUL_EXPR ARITH_FINAL_EXPR
 %type<str> VAR NUM
@@ -54,6 +55,8 @@ EXPR:                   LOGIC_EXPR
 |                       ASSIGNING
 |                       CREATING
 ;
+FUNCTION_CALL:          READ_INT '(' ')'                        {$$ = new ReadIntNode();}
+|                       WRITE '(' EXPR ')'                      {$$ = new WriteNode($3);}
 CREATING:               VAR_TYPE VAR ASSIGN EXPR                {$$ = new CreateOperator($1, $2, $4);}
 |                       VAR_TYPE VAR                            {$$ = new CreateOperator($1, $2);}
 ;
@@ -90,6 +93,7 @@ ARITH_MUL_EXPR:         ARITH_FINAL_EXPR
 ARITH_FINAL_EXPR:       '(' EXPR ')'                            {$$ = $2}
 |                       NUM                                     {$$ = new IntValueNode($1.c_str());}
 |                       VAR                                     {$$ = new VariableNode($1);}
+|                       FUNCTION_CALL
 |                       '-' ARITH_FINAL_EXPR                    {$$ = new UnaryMinusOperator($2);}
 ;
 %%

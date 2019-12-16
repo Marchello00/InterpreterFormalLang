@@ -17,6 +17,8 @@
                             return NUM;
                         }
 [ \t\r\n]               ;
+read_int                return READ_INT;
+write                   return WRITE;
 int                     return INT;
 if                      return IF;
 else                    return ELSE;

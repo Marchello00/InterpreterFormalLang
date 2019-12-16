@@ -9,19 +9,8 @@
 
 #include <iostream>
 #include <vector>
-
-enum class NodeType {
-    OPERATOR,
-    COMMAND,
-    COMMAND_LIST,
-    CONSTANT,
-    VARIABLE,
-    TYPE,
-};
-
-enum class TypeIdentifyer {
-    INT_T,
-};
+#include <machine.h>
+#include <enums.h>
 
 class Node {
 public:
@@ -387,6 +376,27 @@ private:
     ExpressionNode *condition_;
     CmdNode *true_branch_;
     CmdNode *false_branch_;
+};
+
+class ReadIntNode : public OperatorNode {
+public:
+    void print(int depth, std::ostream &out) override {
+        out << "read_int()";
+    }
+private:
+};
+
+class WriteNode : public OperatorNode {
+public:
+    explicit WriteNode(ExpressionNode *dst) : dst_(dst) {}
+
+    void print(int depth, std::ostream &out) override {
+        out << "write(";
+        dst_->print(depth, out);
+        out << ")";
+    }
+private:
+    ExpressionNode *dst_;
 };
 
 #endif // SYNTAX_TREE_H
