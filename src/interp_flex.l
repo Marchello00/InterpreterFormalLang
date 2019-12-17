@@ -1,4 +1,5 @@
 %{
+    #include <parser.h>
     #include <string>
     #define YYSTYPE std::string
     #include "interp_bison.hpp"

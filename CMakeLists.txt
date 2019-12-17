@@ -3,3 +3,4 @@ project(interpreter)
 
 add_subdirectory(src)
 target_include_directories(interpreter PUBLIC lib)
+target_include_directories(parser PUBLIC lib)

@@ -1,4 +1,5 @@
 %{
+    #include <parser.h>
     #include <syntax_tree.h>
     #include <iostream>
     #include <cstdlib>

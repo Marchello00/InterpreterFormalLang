@@ -43,10 +43,10 @@ ENDMACRO(LEX_FILE)
 YACC_FILE(interp_bison.y)
 LEX_FILE(interp_flex.l)
 
-add_executable(interpreter
-        interp_bison.cpp
-        interp_flex.cpp
-        main.cpp
-        )
+add_library(parser STATIC interp_bison.cpp interp_flex.cpp)
 
-target_compile_options(interpreter PRIVATE -Wno-deprecated-register)
+add_executable(interpreter main.cpp)
+
+target_link_libraries(interpreter parser)
+
+target_compile_options(parser PRIVATE -Wno-deprecated-register)
