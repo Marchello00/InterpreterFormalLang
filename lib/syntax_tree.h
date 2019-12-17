@@ -26,8 +26,15 @@ private:
 
 class ExpressionNode : public Node {
 public:
-    explicit ExpressionNode(NodeType type) :
+    explicit ExpressionNode(NodeType type = NodeType::EMPTY) :
             Node(type) {}
+
+    void print(int depth, std::ostream &out) override {}
+
+    void evaluate(Machine &machine) override {
+        machine.push(TypeIdentifyer::INT_T);
+        machine.top() = true;
+    }
 };
 
 class CmdNode : public Node {
@@ -45,6 +52,9 @@ public:
 
     void print(int depth, std::ostream &out) override {
         auto tab = std::string(depth, '\t');
+        if (cmd_->nodeType() == NodeType::EMPTY) {
+            return;
+        }
         if (cmd_->nodeType() == NodeType::COMMAND_LIST) {
             out << tab << "{\n";
             cmd_->print(depth + 1, out);
@@ -59,7 +69,9 @@ public:
     }
 
     void evaluate(Machine &machine) override {
-        cmd_->evaluate(machine);
+        if (cmd_) {
+            cmd_->evaluate(machine);
+        }
     }
 
 private:
@@ -581,13 +593,15 @@ public:
 
     void evaluate(Machine &machine) override {
         machine.add(var_type_->type(), var_->name());
-        expression_->evaluate(machine);
-        auto &expr = machine.top();
-        auto &var = machine.get(var_->name());
-        if (var.type() != expr.type()) {
-            throw std::invalid_argument(VAR_NEQ_EXPR);
+        if (expression_) {
+            expression_->evaluate(machine);
+            auto &expr = machine.top();
+            auto &var = machine.get(var_->name());
+            if (var.type() != expr.type()) {
+                throw std::invalid_argument(VAR_NEQ_EXPR);
+            }
+            var = std::move(expr);
         }
-        var = std::move(expr);
     }
 
 private:

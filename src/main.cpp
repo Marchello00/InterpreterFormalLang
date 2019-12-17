@@ -3,26 +3,28 @@
 #include <machine.h>
 #include <parser.h>
 #include <fstream>
+#include <interpreter.h>
 
 int main(int argc, char *argv[]) {
-    std::ifstream f_in;
     if (argc > 1) {
-        freopen(argv[1], "r", stdin);
+        if (!set_file(argv[1])) {
+            std::cerr << "Can't open file " << std::string(argv[1]) << "\n";
+            return 0;
+        }
     }
-    if (argc > 2) {
-        f_in.open(argv[2], std::ifstream::in);
-    }
-    yydebug = 0;
-    CmdListNode *root;
-    if (yyparse(&root)) {
-        return -1;
-    }
-//    root->print(0, std::cout);
-    Machine machine(f_in);
-    try {
-        root->evaluate(machine);
-    } catch  (std::exception &e) {
-        std::cout << "Error: " << e.what() << "\n";
+//    std::ifstream f_in;
+//    if (argc > 2) {
+//        f_in.open(argv[2], std::ifstream::in);
+//    }
+    Interpreter interpreter;
+    while (!flex_interpreter.eof) {
+        flex_interpreter.atStart = true;
+        int status = yyparse(&interpreter);
+        if (status) {
+            flex_interpreter.atStart = true;
+        } else {
+            interpreter.interpret();
+        }
     }
     return 0;
 }

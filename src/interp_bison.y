@@ -7,9 +7,8 @@
     extern int yylineno;
     extern int yylex();
 
-    void yyerror(CmdListNode **root, const std::string &s) {
+    void yyerror(Interpreter *interpreter, const std::string &s) {
         std::cerr << s << "\n";
-        exit(1);
     }
 
     typedef struct {
@@ -24,7 +23,7 @@
     #define YYSTYPE YYSTYPE_struct
 %}
 
-%token IF ELSE
+%token IF ELSE FOR WHILE
 %token EQ LESS GR LESS_EQ GR_EQ NOT_EQ NOT AND OR
 %token ASSIGN
 %token INT VAR NUM
@@ -33,15 +32,16 @@
 %type<cmd> CMD
 %type<cmd_list> CMDS
 %type<var_type> VAR_TYPE
-%type<expr> EXPR CREATING ASSIGNING LOGIC_EXPR FUNCTION_CALL
+%type<expr> EEXPR EXPR CREATING ASSIGNING LOGIC_EXPR FUNCTION_CALL
 %type<expr> LOGIC_AND_EXPR LOGIC_CMP_EXPR LOGIC_FINAL_EXPR
 %type<expr> ARITH_EXPR ARITH_MUL_EXPR ARITH_FINAL_EXPR
 %type<str> VAR NUM
 
-%parse-param {CmdListNode **root}
+%parse-param {Interpreter *interpreter}
 
 %%
-PROGRAM:                CMDS                                    {*root = $1}
+PROGRAM:                CMD                                     {interpreter->set_node($1); return 0;}
+|                                                               {interpreter->set_node(new ExpressionNode()); return 0;}
 CMDS:                   CMDS CMD                                {
                                                                     $$ = $1;
                                                                     $$->addCmd($2);
@@ -49,9 +49,12 @@ CMDS:                   CMDS CMD                                {
 |                       CMD                                     {$$ = new CmdListNode($1);}
 ;
 CMD:                    '{' CMDS '}'                            {$$ = new CmdNode($2);}
-|                       EXPR ';'                                {$$ = new CmdNode($1); $$->setSimple();}
+|                       '{' '}'                                 {$$ = new CmdNode(new ExpressionNode());}
+|                       EEXPR ';'                               {$$ = new CmdNode($1); $$->setSimple();}
 |                       IF '(' EXPR ')' CMD ELSE CMD            {$$ = new CmdNode(new IfOperatorNode($3, $5, $7));}
 ;
+EEXPR:                  EXPR
+|                                                               {$$ = new ExpressionNode();}
 EXPR:                   LOGIC_EXPR
 |                       ASSIGNING
 |                       CREATING

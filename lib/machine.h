@@ -55,6 +55,9 @@ public:
     }
 
     Value &get(const std::string &name) {
+        if (vars_.find(name) == vars_.end()) {
+            throw std::invalid_argument("No variable " + name);
+        }
         return vars_[name];
     }
 

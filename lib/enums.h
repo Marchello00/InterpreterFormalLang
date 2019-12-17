@@ -9,6 +9,7 @@ enum class NodeType {
     CONSTANT,
     VARIABLE,
     TYPE,
+    EMPTY,
 };
 
 enum class TypeIdentifyer {
