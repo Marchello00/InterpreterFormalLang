@@ -32,7 +32,7 @@
 %type<cmd> CMD
 %type<cmd_list> CMDS
 %type<var_type> VAR_TYPE
-%type<expr> EEXPR EXPR CREATING ASSIGNING LOGIC_EXPR FUNCTION_CALL
+%type<expr> EEXPR EXPR CREATING ASSIGNING LOGIC_EXPR FUNCTION_CALL RET_FUNCTION_CALL
 %type<expr> LOGIC_AND_EXPR LOGIC_CMP_EXPR LOGIC_FINAL_EXPR
 %type<expr> ARITH_EXPR ARITH_MUL_EXPR ARITH_FINAL_EXPR
 %type<str> VAR NUM
@@ -40,64 +40,67 @@
 %parse-param {Interpreter *interpreter}
 
 %%
-PROGRAM:                CMD                                     {interpreter->set_node($1); return 0;}
-|                                                               {interpreter->set_node(new ExpressionNode()); return 0;}
-CMDS:                   CMDS CMD                                {
-                                                                    $$ = $1;
-                                                                    $$->addCmd($2);
-                                                                }
-|                       CMD                                     {$$ = new CmdListNode($1);}
+PROGRAM:                CMD                                         {interpreter->set_node($1); return 0;}
+|                                                                   {interpreter->set_node(new ExpressionNode()); return 0;}
+CMDS:                   CMDS CMD                                    {
+                                                                        $$ = $1;
+                                                                        $$->addCmd($2);
+                                                                    }
+|                       CMD                                         {$$ = new CmdListNode($1);}
 ;
-CMD:                    '{' CMDS '}'                            {$$ = new CmdNode($2);}
-|                       '{' '}'                                 {$$ = new CmdNode(new ExpressionNode());}
-|                       EEXPR ';'                               {$$ = new CmdNode($1); $$->setSimple();}
-|                       IF '(' EXPR ')' CMD ELSE CMD            {$$ = new CmdNode(new IfOperatorNode($3, $5, $7));}
+CMD:                    '{' CMDS '}'                                {$$ = new CmdNode($2);}
+|                       '{' '}'                                     {$$ = new CmdNode(new ExpressionNode());}
+|                       FUNCTION_CALL ';'                           {$$ = new CmdNode($1); $$->setSimple();}
+|                       EEXPR ';'                                   {$$ = new CmdNode($1); $$->setSimple();}
+|                       IF '(' EEXPR ')' CMD ELSE CMD               {$$ = new CmdNode(new IfOperatorNode($3, $5, $7));}
+|                       WHILE '(' EEXPR ')' CMD                     {$$ = new CmdNode(new WhileOperatorNode($3, $5));}
+|                       FOR '(' EEXPR ';' EEXPR ';' EEXPR ')' CMD   {$$ = new CmdNode(new ForOperatorNode($3, $5, $7, $9));}
 ;
 EEXPR:                  EXPR
-|                                                               {$$ = new ExpressionNode();}
+|                                                                   {$$ = new ExpressionNode();}
 EXPR:                   LOGIC_EXPR
 |                       ASSIGNING
 |                       CREATING
 ;
-FUNCTION_CALL:          READ_INT '(' ')'                        {$$ = new ReadIntNode();}
-|                       WRITE '(' EXPR ')'                      {$$ = new WriteNode($3);}
-CREATING:               VAR_TYPE VAR ASSIGN EXPR                {$$ = new CreateOperator($1, $2, $4);}
-|                       VAR_TYPE VAR                            {$$ = new CreateOperator($1, $2);}
+RET_FUNCTION_CALL:      READ_INT '(' ')'                            {$$ = new ReadIntNode();}
+FUNCTION_CALL:          WRITE '(' EXPR ')'                          {$$ = new WriteNode($3);}
+CREATING:               VAR_TYPE VAR ASSIGN EXPR                    {$$ = new CreateOperator($1, $2, $4);}
+|                       VAR_TYPE VAR                                {$$ = new CreateOperator($1, $2);}
 ;
-ASSIGNING:              VAR ASSIGN EXPR                         {$$ = new AssignOperator($1, $3);}
+ASSIGNING:              VAR ASSIGN EXPR                             {$$ = new AssignOperator($1, $3);}
 ;
-VAR_TYPE:               INT                                     {$$ = new TypeNode(TypeIdentifyer::INT_T);}
+VAR_TYPE:               INT                                         {$$ = new TypeNode(TypeIdentifyer::INT_T);}
 ;
 LOGIC_EXPR:             LOGIC_AND_EXPR
-|                       LOGIC_EXPR OR LOGIC_AND_EXPR            {$$ = new OrOperator($1, $3);}
+|                       LOGIC_EXPR OR LOGIC_AND_EXPR                {$$ = new OrOperator($1, $3);}
 ;
 LOGIC_AND_EXPR:         LOGIC_CMP_EXPR
-|                       LOGIC_AND_EXPR AND LOGIC_CMP_EXPR       {$$ = new AndOperator($1, $3);}
+|                       LOGIC_AND_EXPR AND LOGIC_CMP_EXPR           {$$ = new AndOperator($1, $3);}
 ;
 LOGIC_CMP_EXPR:         LOGIC_FINAL_EXPR
-|                       LOGIC_CMP_EXPR EQ LOGIC_FINAL_EXPR      {$$ = new EqOperator($1, $3);}
-|                       LOGIC_CMP_EXPR LESS LOGIC_FINAL_EXPR    {$$ = new LessOperator($1, $3);}
-|                       LOGIC_CMP_EXPR GR LOGIC_FINAL_EXPR      {$$ = new GrOperator($1, $3);}
-|                       LOGIC_CMP_EXPR LESS_EQ LOGIC_FINAL_EXPR {$$ = new LessEqOperator($1, $3);}
-|                       LOGIC_CMP_EXPR GR_EQ LOGIC_FINAL_EXPR   {$$ = new GrEqOperator($1, $3);}
-|                       LOGIC_CMP_EXPR NOT_EQ LOGIC_FINAL_EXPR  {$$ = new NotEqOperator($1, $3);}
+|                       LOGIC_CMP_EXPR EQ LOGIC_FINAL_EXPR          {$$ = new EqOperator($1, $3);}
+|                       LOGIC_CMP_EXPR LESS LOGIC_FINAL_EXPR        {$$ = new LessOperator($1, $3);}
+|                       LOGIC_CMP_EXPR GR LOGIC_FINAL_EXPR          {$$ = new GrOperator($1, $3);}
+|                       LOGIC_CMP_EXPR LESS_EQ LOGIC_FINAL_EXPR     {$$ = new LessEqOperator($1, $3);}
+|                       LOGIC_CMP_EXPR GR_EQ LOGIC_FINAL_EXPR       {$$ = new GrEqOperator($1, $3);}
+|                       LOGIC_CMP_EXPR NOT_EQ LOGIC_FINAL_EXPR      {$$ = new NotEqOperator($1, $3);}
 ;
-LOGIC_FINAL_EXPR:       '(' EXPR ')'                            {$$ = $2;}
+LOGIC_FINAL_EXPR:       '(' EXPR ')'                                {$$ = $2;}
 |                       ARITH_EXPR
-|                       NOT LOGIC_FINAL_EXPR                    {$$ = new NotOperator($2);}
+|                       NOT LOGIC_FINAL_EXPR                        {$$ = new NotOperator($2);}
 ;
 ARITH_EXPR:             ARITH_MUL_EXPR
-|                       ARITH_EXPR '+' ARITH_MUL_EXPR           {$$ = new PlusOperator($1, $3);}
-|                       ARITH_EXPR '-' ARITH_MUL_EXPR           {$$ = new MinusOperator($1, $3);}
+|                       ARITH_EXPR '+' ARITH_MUL_EXPR               {$$ = new PlusOperator($1, $3);}
+|                       ARITH_EXPR '-' ARITH_MUL_EXPR               {$$ = new MinusOperator($1, $3);}
 ;
 ARITH_MUL_EXPR:         ARITH_FINAL_EXPR
-|                       ARITH_FINAL_EXPR '*' ARITH_MUL_EXPR     {$$ = new MultOperator($1, $3);}
-|                       ARITH_FINAL_EXPR '/' ARITH_MUL_EXPR     {$$ = new DivideOperator($1, $3);}
+|                       ARITH_FINAL_EXPR '*' ARITH_MUL_EXPR         {$$ = new MultOperator($1, $3);}
+|                       ARITH_FINAL_EXPR '/' ARITH_MUL_EXPR         {$$ = new DivideOperator($1, $3);}
 ;
-ARITH_FINAL_EXPR:       '(' EXPR ')'                            {$$ = $2}
-|                       NUM                                     {$$ = new IntValueNode($1.c_str());}
-|                       VAR                                     {$$ = new VariableNode($1);}
-|                       FUNCTION_CALL
-|                       '-' ARITH_FINAL_EXPR                    {$$ = new UnaryMinusOperator($2);}
+ARITH_FINAL_EXPR:       '(' EXPR ')'                                {$$ = $2}
+|                       NUM                                         {$$ = new IntValueNode($1.c_str());}
+|                       VAR                                         {$$ = new VariableNode($1);}
+|                       RET_FUNCTION_CALL
+|                       '-' ARITH_FINAL_EXPR                        {$$ = new UnaryMinusOperator($2);}
 ;
 %%

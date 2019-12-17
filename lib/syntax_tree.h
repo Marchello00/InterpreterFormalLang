@@ -70,7 +70,13 @@ public:
 
     void evaluate(Machine &machine) override {
         if (cmd_) {
+            if (!simple_) {
+                machine.enter_local_level();
+            }
             cmd_->evaluate(machine);
+            if (!simple_) {
+                machine.leave_local_level();
+            }
         }
     }
 
@@ -275,7 +281,10 @@ public:
         if (val.type() != TypeIdentifyer::INT_T) {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
-        val = !*val;
+        int val_v = *val;
+        machine.pop();
+        machine.push(TypeIdentifyer::INT_T);
+        *machine.top() = !val_v;
     }
 };
 
@@ -290,7 +299,10 @@ public:
         if (val.type() != TypeIdentifyer::INT_T) {
             throw std::invalid_argument(NOT_INT);
         }
-        val = -*val;
+        int val_v = *val;
+        machine.pop();
+        machine.push(TypeIdentifyer::INT_T);
+        *machine.top() = -val_v;
     }
 };
 
@@ -305,8 +317,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval + *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v + sval_v;
         } else {
             throw std::invalid_argument(NOT_INT);
         }
@@ -324,8 +340,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval - *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v - sval_v;
         } else {
             throw std::invalid_argument(NOT_INT);
         }
@@ -343,8 +363,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval * *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v * sval_v;
         } else {
             throw std::invalid_argument(NOT_INT);
         }
@@ -362,8 +386,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval / *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v / sval_v;
         } else {
             throw std::invalid_argument(NOT_INT);
         }
@@ -381,8 +409,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval && *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v && sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -400,8 +432,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval || *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v || sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -419,8 +455,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval == *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v == sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -438,8 +478,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval != *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v != sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -457,8 +501,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval < *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v < sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -476,8 +524,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval > *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v > sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -495,8 +547,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval <= *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v <= sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -514,8 +570,12 @@ public:
         auto &sval = machine.top(0);
         if (fval.type() == TypeIdentifyer::INT_T &&
             sval.type() == TypeIdentifyer::INT_T) {
-            fval = *fval >= *sval;
+            int fval_v = *fval;
+            int sval_v = *sval;
             machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v >= sval_v;
         } else {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
@@ -550,7 +610,8 @@ public:
         if (var.type() != expr.type()) {
             throw std::invalid_argument(VAR_NEQ_EXPR);
         }
-        var = std::move(expr);
+        var = expr;
+        machine.pop();
     }
 
 private:
@@ -600,7 +661,8 @@ public:
             if (var.type() != expr.type()) {
                 throw std::invalid_argument(VAR_NEQ_EXPR);
             }
-            var = std::move(expr);
+            var = expr;
+            machine.pop();
         }
     }
 
@@ -631,7 +693,7 @@ public:
         condition_->print(depth, out);
         out << ")\n";
         true_branch_->print(depth, out);
-        if  (false_branch_) {
+        if (false_branch_) {
             out << tab << "else\n";
             false_branch_->print(depth, out);
         }
@@ -643,7 +705,9 @@ public:
         if (cond.type() != TypeIdentifyer::INT_T) {
             throw std::invalid_argument(NOT_BOOL_INT);
         }
-        if (*cond) {
+        int cond_v = *cond;
+        machine.pop();
+        if (cond_v) {
             true_branch_->evaluate(machine);
         } else {
             if (false_branch_) {
@@ -657,6 +721,95 @@ private:
     CmdNode *true_branch_;
     CmdNode *false_branch_;
 };
+
+class WhileOperatorNode : public OperatorNode {
+public:
+    WhileOperatorNode(ExpressionNode *condition, CmdNode *cmd) :
+            condition_(condition), cmd_(cmd) {}
+
+    ~WhileOperatorNode() override {
+        delete condition_;
+        delete cmd_;
+    }
+
+    void print(int depth, std::ostream &out) override {
+        auto tab = std::string(depth, '\t');
+        out << tab << "while (";
+        condition_->print(depth, out);
+        out << ")\n";
+        cmd_->print(depth, out);
+    }
+
+    void evaluate(Machine &machine) override {
+        while (true) {
+            condition_->evaluate(machine);
+            auto &cond = machine.top();
+            if (cond.type() != TypeIdentifyer::INT_T) {
+                throw std::invalid_argument(NOT_BOOL_INT);
+            }
+            int cond_v = *cond;
+            machine.pop();
+            if (!cond_v) {
+                break;
+            }
+            cmd_->evaluate(machine);
+        }
+    }
+
+private:
+    ExpressionNode *condition_;
+    CmdNode *cmd_;
+};
+
+class ForOperatorNode : public OperatorNode {
+public:
+    ForOperatorNode(ExpressionNode *init, ExpressionNode *condition, ExpressionNode *after, CmdNode *cmd) :
+            init_(init), condition_(condition), after_(after), cmd_(cmd) {}
+
+    ~ForOperatorNode() override {
+        delete init_;
+        delete condition_;
+        delete after_;
+        delete cmd_;
+    }
+
+    void print(int depth, std::ostream &out) override {
+        auto tab = std::string(depth, '\t');
+        out << tab << "for (";
+        init_->print(depth, out);
+        out << ";";
+        condition_->print(depth, out);
+        out << ";";
+        after_->print(depth, out);
+        out << ")\n";
+        cmd_->print(depth, out);
+    }
+
+    void evaluate(Machine &machine) override {
+        init_->evaluate(machine);
+        while (true) {
+            condition_->evaluate(machine);
+            auto &cond = machine.top();
+            if (cond.type() != TypeIdentifyer::INT_T) {
+                throw std::invalid_argument(NOT_BOOL_INT);
+            }
+            int cond_v = *cond;
+            machine.pop();
+            if (!cond_v) {
+                break;
+            }
+            cmd_->evaluate(machine);
+            after_->evaluate(machine);
+        }
+    }
+
+private:
+    ExpressionNode *init_;
+    ExpressionNode *condition_;
+    ExpressionNode *after_;
+    CmdNode *cmd_;
+};
+
 
 class ReadIntNode : public OperatorNode {
 public:

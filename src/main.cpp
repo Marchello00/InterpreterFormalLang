@@ -5,17 +5,20 @@
 #include <fstream>
 #include <interpreter.h>
 
+std::string interactive_hello() {
+    return "Hello, You are in interaction version of interpreter. Just enter commands like in python interpreter.\n" +
+           flex_interpreter.ps1;
+}
+
 int main(int argc, char *argv[]) {
     if (argc > 1) {
         if (!set_file(argv[1])) {
             std::cerr << "Can't open file " << std::string(argv[1]) << "\n";
             return 0;
         }
+    } else {
+        std::cout << interactive_hello();
     }
-//    std::ifstream f_in;
-//    if (argc > 2) {
-//        f_in.open(argv[2], std::ifstream::in);
-//    }
     Interpreter interpreter;
     while (!flex_interpreter.eof) {
         flex_interpreter.atStart = true;

@@ -45,13 +45,27 @@ class Machine {
     typedef int IndexT;
 public:
     explicit Machine(std::istream &in = std::cin, std::ostream &out = std::cout) :
-            in_(in), out_(out) {}
+            in_(in), out_(out) {
+        local_.emplace_back();
+    }
 
     void add(TypeIdentifyer type, const std::string &name) {
         if (vars_.find(name) != vars_.end()) {
             throw std::invalid_argument("Redefinition of variable " + name);
         }
         vars_[name] = Value(type);
+        local_.back().push_back(name);
+    }
+
+    void enter_local_level() {
+        local_.emplace_back();
+    }
+
+    void leave_local_level() {
+        for (const auto& name : local_.back()) {
+            vars_.erase(name);
+        }
+        local_.pop_back();
     }
 
     Value &get(const std::string &name) {
@@ -85,8 +99,8 @@ public:
     }
 
     void read_int() {
-        int val;
-        in_ >> val;
+        std::string sval = read_();
+        int val = std::strtol(sval.c_str(), nullptr, 10);
         push(TypeIdentifyer::INT_T);
         top() = val;
     }
@@ -104,8 +118,16 @@ private:
     std::unordered_map<IndexT, Value> regs_;
     std::vector<Value> tmp_;
 
+    std::vector<std::vector<std::string>> local_;
+
     std::istream &in_;
     std::ostream &out_;
+
+    std::string read_() {
+        std::string s;
+        std::getline(in_, s);
+        return s;
+    }
 };
 
 #endif //INTERPRETER_MACHINE_H
