@@ -29,7 +29,7 @@
 %token INT VAR NUM
 %token READ_INT WRITE
 
-%type<cmd> CMD
+%type<cmd> CMD CMD1 CMD2
 %type<cmd_list> CMDS
 %type<var_type> VAR_TYPE
 %type<expr> EEXPR EXPR CREATING ASSIGNING LOGIC_EXPR FUNCTION_CALL RET_FUNCTION_CALL
@@ -40,21 +40,38 @@
 %parse-param {Interpreter *interpreter}
 
 %%
-PROGRAM:                CMD                                         {interpreter->set_node($1); return 0;}
-|                                                                   {interpreter->set_node(new ExpressionNode()); return 0;}
+PROGRAM:                PROGRAM CMD                                 {
+                                                                        interpreter->set_node($2);
+                                                                        interpreter->interpret();
+                                                                        flex_interpreter.atStart = true;
+                                                                    }
+|                       CMD                                         {
+                                                                        interpreter->set_node($1);
+                                                                        interpreter->interpret();
+                                                                        flex_interpreter.atStart = true;
+                                                                    }
+;
 CMDS:                   CMDS CMD                                    {
                                                                         $$ = $1;
                                                                         $$->addCmd($2);
                                                                     }
 |                       CMD                                         {$$ = new CmdListNode($1);}
 ;
-CMD:                    '{' CMDS '}'                                {$$ = new CmdNode($2);}
+CMD:                    CMD1
+|                       CMD2
+;
+CMD1:                   '{' CMDS '}'                                {$$ = new CmdNode($2);}
 |                       '{' '}'                                     {$$ = new CmdNode(new ExpressionNode());}
 |                       FUNCTION_CALL ';'                           {$$ = new CmdNode($1); $$->setSimple();}
 |                       EEXPR ';'                                   {$$ = new CmdNode($1); $$->setSimple();}
-|                       IF '(' EEXPR ')' CMD ELSE CMD               {$$ = new CmdNode(new IfOperatorNode($3, $5, $7));}
-|                       WHILE '(' EEXPR ')' CMD                     {$$ = new CmdNode(new WhileOperatorNode($3, $5));}
-|                       FOR '(' EEXPR ';' EEXPR ';' EEXPR ')' CMD   {$$ = new CmdNode(new ForOperatorNode($3, $5, $7, $9));}
+|                       IF '(' EEXPR ')' CMD1 ELSE CMD1             {$$ = new CmdNode(new IfOperatorNode($3, $5, $7));}
+|                       WHILE '(' EEXPR ')' CMD1                    {$$ = new CmdNode(new WhileOperatorNode($3, $5));}
+|                       FOR '(' EEXPR ';' EEXPR ';' EEXPR ')' CMD1  {$$ = new CmdNode(new ForOperatorNode($3, $5, $7, $9));}
+;
+CMD2:                   IF '(' EEXPR ')' CMD                        {$$ = new CmdNode(new IfOperatorNode($3, $5, nullptr));}
+|                       IF '(' EEXPR ')' CMD1 ELSE CMD2             {$$ = new CmdNode(new IfOperatorNode($3, $5, $7));}
+|                       WHILE '(' EEXPR ')' CMD2                    {$$ = new CmdNode(new WhileOperatorNode($3, $5));}
+|                       FOR '(' EEXPR ';' EEXPR ';' EEXPR ')' CMD2  {$$ = new CmdNode(new ForOperatorNode($3, $5, $7, $9));}
 ;
 EEXPR:                  EXPR
 |                                                                   {$$ = new ExpressionNode();}
@@ -85,8 +102,7 @@ LOGIC_CMP_EXPR:         LOGIC_FINAL_EXPR
 |                       LOGIC_CMP_EXPR GR_EQ LOGIC_FINAL_EXPR       {$$ = new GrEqOperator($1, $3);}
 |                       LOGIC_CMP_EXPR NOT_EQ LOGIC_FINAL_EXPR      {$$ = new NotEqOperator($1, $3);}
 ;
-LOGIC_FINAL_EXPR:       '(' EXPR ')'                                {$$ = $2;}
-|                       ARITH_EXPR
+LOGIC_FINAL_EXPR:       ARITH_EXPR
 |                       NOT LOGIC_FINAL_EXPR                        {$$ = new NotOperator($2);}
 ;
 ARITH_EXPR:             ARITH_MUL_EXPR

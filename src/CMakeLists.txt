@@ -22,7 +22,7 @@ MACRO(YACC_FILE _filename)
     ADD_CUSTOM_COMMAND(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.h
-            COMMAND ${YACC_EXE} -td
+            COMMAND ${YACC_EXE} -tvd
             --output=${_basename}.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
             DEPENDS ${_filename}

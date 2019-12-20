@@ -391,6 +391,9 @@ public:
             machine.pop();
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
+            if (*sval == 0) {
+                throw std::runtime_error("Division by zero.");
+            }
             *machine.top() = fval_v / sval_v;
         } else {
             throw std::invalid_argument(NOT_INT);
