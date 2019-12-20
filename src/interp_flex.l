@@ -61,9 +61,15 @@
 %option yylineno
 %option noyywrap
 
+%x COMMENT
+%x STR
+
 %%
 
-[/][/].*\n              ;
+[/][/].*\n              { flex_interpreter.atStart = true; }
+[/][*]                  { BEGIN(COMMENT); }
+<COMMENT>[*][/]         { BEGIN(INITIAL); flex_interpreter.atStart = true; }
+<COMMENT>.              ;
 [0-9]+                  {
                             yylval = yytext;
                             return NUM;
