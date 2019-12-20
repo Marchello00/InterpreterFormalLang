@@ -27,7 +27,7 @@
 %token EQ LESS GR LESS_EQ GR_EQ NOT_EQ NOT AND OR
 %token ASSIGN
 %token INT VAR NUM
-%token READ_INT WRITE
+%token READ_INT WRITE EXIT
 
 %type<cmd> CMD CMD1 CMD2
 %type<cmd_list> CMDS
@@ -81,6 +81,8 @@ EXPR:                   LOGIC_EXPR
 ;
 RET_FUNCTION_CALL:      READ_INT '(' ')'                            {$$ = new ReadIntNode();}
 FUNCTION_CALL:          WRITE '(' EXPR ')'                          {$$ = new WriteNode($3);}
+|                       EXIT '(' ')'                                {$$ = new ExitNode();}
+;
 CREATING:               VAR_TYPE VAR ASSIGN EXPR                    {$$ = new CreateOperator($1, $2, $4);}
 |                       VAR_TYPE VAR                                {$$ = new CreateOperator($1, $2);}
 ;

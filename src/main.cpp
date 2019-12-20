@@ -11,7 +11,6 @@ std::string interactive_hello() {
 }
 
 int main(int argc, char *argv[]) {
-//    yydebug = 1;
     if (argc > 1) {
         if (!set_file(argv[1])) {
             std::cerr << "Can't open file " << std::string(argv[1]) << "\n";

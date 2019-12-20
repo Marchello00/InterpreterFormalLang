@@ -850,4 +850,15 @@ private:
     ExpressionNode *dst_;
 };
 
+class ExitNode : public OperatorNode {
+public:
+    void print(int depth, std::ostream &out) override {
+        out << "exit()";
+    }
+
+    void evaluate(Machine &machine) override {
+        exit(0);
+    }
+};
+
 #endif // SYNTAX_TREE_H

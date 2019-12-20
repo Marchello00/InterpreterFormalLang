@@ -76,6 +76,7 @@ if                      return IF;
 else                    return ELSE;
 while                   return WHILE;
 for                     return FOR;
+exit                    return EXIT;
 [a-zA-Z_][a-zA-Z0-9_]*  {
                             yylval = yytext;
                             return VAR;
