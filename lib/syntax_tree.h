@@ -448,7 +448,7 @@ public:
             machine.pop();
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
-            if (*sval == 0) {
+            if (sval_v == 0) {
                 throw std::runtime_error("Division by zero.");
             }
             *machine.top() = fval_v / sval_v;
@@ -474,7 +474,7 @@ public:
             machine.pop();
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
-            if (*sval == 0) {
+            if (sval_v == 0) {
                 throw std::runtime_error("Division by zero.");
             }
             *machine.top() = fval_v % sval_v;

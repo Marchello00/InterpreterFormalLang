@@ -1,0 +1,7 @@
+int a = read_int();
+int b = read_int();
+for (int c = b; c != 0; c = b) {
+    b = a % b;
+    a = c;
+}
+write_line(a);
