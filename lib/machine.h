@@ -25,6 +25,10 @@ public:
         val_ = std::make_shared<std::string>(str);
     }
 
+    std::string &get_str() {
+        return *std::static_pointer_cast<std::string>(pval());
+    }
+
     TypeIdentifyer type() const {
         return type_;
     }
@@ -36,6 +40,10 @@ public:
         switch (type_) {
             case TypeIdentifyer::INT_T: {
                 val_ = std::make_shared<int>(0);
+                break;
+            }
+            case TypeIdentifyer::STRING_T: {
+                val_ = std::make_shared<std::string>();
                 break;
             }
         }
@@ -142,7 +150,7 @@ public:
                 break;
             }
             case TypeIdentifyer::STRING_T: {
-                out_ << *std::static_pointer_cast<std::string>(top().pval());
+                out_ << top().get_str();
                 pop();
                 break;
             }

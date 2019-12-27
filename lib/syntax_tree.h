@@ -130,6 +130,10 @@ public:
                 out << "int";
                 break;
             }
+            case (TypeIdentifyer::STRING_T): {
+                out << "string";
+                break;
+            }
         }
     }
 
@@ -295,13 +299,24 @@ public:
     void evaluate(Machine &machine) override {
         UnaryOperator::evaluate(machine);
         auto &val = machine.top();
-        if (val.type() != TypeIdentifyer::INT_T) {
-            throw std::invalid_argument(NOT_BOOL_INT);
+        switch (val.type()) {
+            case TypeIdentifyer::INT_T: {
+                int val_v = *val;
+                machine.pop();
+                machine.push(TypeIdentifyer::INT_T);
+                *machine.top() = !val_v;
+                break;
+            }
+            case TypeIdentifyer::STRING_T: {
+                bool val_v = !val.get_str().empty();
+                machine.pop();
+                machine.push(TypeIdentifyer::INT_T);
+                *machine.top() = !val_v;
+            }
+            default: {
+                throw std::invalid_argument(NOT_BOOL_INT);
+            }
         }
-        int val_v = *val;
-        machine.pop();
-        machine.push(TypeIdentifyer::INT_T);
-        *machine.top() = !val_v;
     }
 };
 
@@ -340,6 +355,14 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v + sval_v;
+        } else if (fval.type() == TypeIdentifyer::STRING_T &&
+                   sval.type() == TypeIdentifyer::STRING_T) {
+            std::string fval_v = fval.get_str();
+            std::string sval_v = sval.get_str();
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::STRING_T);
+            machine.top().load_str(fval_v + sval_v);
         } else {
             throw std::invalid_argument(NOT_INT);
         }
@@ -386,6 +409,18 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v * sval_v;
+        }  else if (fval.type() == TypeIdentifyer::STRING_T &&
+                    sval.type() == TypeIdentifyer::INT_T) {
+            std::string fval_v = fval.get_str();
+            int sval_v = *sval;
+            machine.pop();
+            machine.pop();
+            std::string result;
+            for (int i = 0; i < sval_v; ++i) {
+                result += fval_v;
+            }
+            machine.push(TypeIdentifyer::STRING_T);
+            machine.top().load_str(result);
         } else {
             throw std::invalid_argument(NOT_INT);
         }
@@ -504,8 +539,16 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v != sval_v;
+        } else if (fval.type() == TypeIdentifyer::STRING_T &&
+                   sval.type() == TypeIdentifyer::STRING_T) {
+            std::string fval_v = fval.get_str();
+            std::string sval_v = sval.get_str();
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v != sval_v;
         } else {
-            throw std::invalid_argument(NOT_BOOL_INT);
+            throw std::invalid_argument(NOT_INT);
         }
     }
 };
@@ -527,8 +570,16 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v < sval_v;
+        } else if (fval.type() == TypeIdentifyer::STRING_T &&
+                   sval.type() == TypeIdentifyer::STRING_T) {
+            std::string fval_v = fval.get_str();
+            std::string sval_v = sval.get_str();
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v < sval_v;
         } else {
-            throw std::invalid_argument(NOT_BOOL_INT);
+            throw std::invalid_argument(NOT_INT);
         }
     }
 };
@@ -550,8 +601,16 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v > sval_v;
+        } else if (fval.type() == TypeIdentifyer::STRING_T &&
+                   sval.type() == TypeIdentifyer::STRING_T) {
+            std::string fval_v = fval.get_str();
+            std::string sval_v = sval.get_str();
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v > sval_v;
         } else {
-            throw std::invalid_argument(NOT_BOOL_INT);
+            throw std::invalid_argument(NOT_INT);
         }
     }
 };
@@ -573,8 +632,16 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v <= sval_v;
+        } else if (fval.type() == TypeIdentifyer::STRING_T &&
+                   sval.type() == TypeIdentifyer::STRING_T) {
+            std::string fval_v = fval.get_str();
+            std::string sval_v = sval.get_str();
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v <= sval_v;
         } else {
-            throw std::invalid_argument(NOT_BOOL_INT);
+            throw std::invalid_argument(NOT_INT);
         }
     }
 };
@@ -596,8 +663,16 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v >= sval_v;
+        } else if (fval.type() == TypeIdentifyer::STRING_T &&
+                   sval.type() == TypeIdentifyer::STRING_T) {
+            std::string fval_v = fval.get_str();
+            std::string sval_v = sval.get_str();
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v >= sval_v;
         } else {
-            throw std::invalid_argument(NOT_BOOL_INT);
+            throw std::invalid_argument(NOT_INT);
         }
     }
 };
@@ -846,7 +921,7 @@ private:
 
 class ReadNode : public OperatorNode {
 public:
-    explicit ReadNode(bool line = false): line_(line) {}
+    explicit ReadNode(bool line = false) : line_(line) {}
 
     void print(int depth, std::ostream &out) override {
         out << "read_int()";
