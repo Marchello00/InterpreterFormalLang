@@ -160,8 +160,9 @@ public:
         machine.top().pval() = std::make_shared<std::string>(value_);
     }
 
-private:
+protected:
     std::string value_;
+private:
     TypeNode *type_n_;
 };
 
@@ -184,6 +185,22 @@ public:
 private:
     int int_value_;
 };
+
+class StringValueNode : public ValueNode {
+public:
+    std::string value() const {
+        return value_;
+    }
+
+    explicit StringValueNode(const std::string &value) :
+            ValueNode(value, new TypeNode(TypeIdentifyer::STRING_T)) {}
+
+    void evaluate(Machine &machine) override {
+        machine.push(TypeIdentifyer::STRING_T);
+        machine.top().load_str(value_);
+    }
+};
+
 
 class VariableNode : public ExpressionNode {
 public:
@@ -827,9 +844,30 @@ public:
 private:
 };
 
+class ReadNode : public OperatorNode {
+public:
+    explicit ReadNode(bool line = false): line_(line) {}
+
+    void print(int depth, std::ostream &out) override {
+        out << "read_int()";
+    }
+
+    void evaluate(Machine &machine) override {
+        if (line_) {
+            machine.read_line();
+        } else {
+            machine.read_word();
+        }
+    }
+
+private:
+    bool line_ = false;
+};
+
 class WriteNode : public OperatorNode {
 public:
-    explicit WriteNode(ExpressionNode *dst) : dst_(dst) {}
+    explicit WriteNode(ExpressionNode *dst, bool line = false) :
+            dst_(dst), line_(line) {}
 
     ~WriteNode() override {
         delete dst_;
@@ -844,10 +882,14 @@ public:
     void evaluate(Machine &machine) override {
         dst_->evaluate(machine);
         machine.write();
+        if (line_) {
+            machine.write("\n");
+        }
     }
 
 private:
     ExpressionNode *dst_;
+    bool line_ = false;
 };
 
 class ExitNode : public OperatorNode {

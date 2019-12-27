@@ -14,6 +14,7 @@ enum class NodeType {
 
 enum class TypeIdentifyer {
     INT_T,
+    STRING_T,
 };
 
 const std::string NOT_INT = "Not int in int expression";

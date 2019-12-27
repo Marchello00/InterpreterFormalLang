@@ -28,7 +28,7 @@
 %token ASSIGN
 %token INT STRING
 %token VAR NUM STRING_CONST
-%token READ_INT WRITE EXIT
+%token READ_INT WRITE EXIT WRITE_LINE READ_WORD READ_LINE
 
 %type<cmd> CMD CMD1 CMD2
 %type<cmd_list> CMDS
@@ -36,7 +36,7 @@
 %type<expr> EEXPR EXPR CREATING ASSIGNING LOGIC_EXPR FUNCTION_CALL RET_FUNCTION_CALL
 %type<expr> LOGIC_AND_EXPR LOGIC_CMP_EXPR LOGIC_FINAL_EXPR
 %type<expr> ARITH_EXPR ARITH_MUL_EXPR ARITH_FINAL_EXPR
-%type<str> VAR NUM
+%type<str> VAR NUM STRING_CONST
 
 %parse-param {Interpreter *interpreter}
 
@@ -81,7 +81,11 @@ EXPR:                   LOGIC_EXPR
 |                       CREATING
 ;
 RET_FUNCTION_CALL:      READ_INT '(' ')'                            {$$ = new ReadIntNode();}
-FUNCTION_CALL:          WRITE '(' EXPR ')'                          {$$ = new WriteNode($3);}
+|                       READ_WORD '(' ')'                           {$$ = new ReadNode(false);}
+|                       READ_LINE '(' ')'                           {$$  = new ReadNode(true);}
+;
+FUNCTION_CALL:          WRITE '(' EXPR ')'                          {$$ = new WriteNode($3, false);}
+|                       WRITE_LINE '(' EXPR ')'                     {$$ = new WriteNode($3, true);}
 |                       EXIT '(' ')'                                {$$ = new ExitNode();}
 ;
 CREATING:               VAR_TYPE VAR ASSIGN EXPR                    {$$ = new CreateOperator($1, $2, $4);}
@@ -90,6 +94,7 @@ CREATING:               VAR_TYPE VAR ASSIGN EXPR                    {$$ = new Cr
 ASSIGNING:              VAR ASSIGN EXPR                             {$$ = new AssignOperator($1, $3);}
 ;
 VAR_TYPE:               INT                                         {$$ = new TypeNode(TypeIdentifyer::INT_T);}
+|                       STRING                                      {$$ = new TypeNode(TypeIdentifyer::STRING_T);}
 ;
 LOGIC_EXPR:             LOGIC_AND_EXPR
 |                       LOGIC_EXPR OR LOGIC_AND_EXPR                {$$ = new OrOperator($1, $3);}
@@ -117,7 +122,8 @@ ARITH_MUL_EXPR:         ARITH_FINAL_EXPR
 |                       ARITH_FINAL_EXPR '/' ARITH_MUL_EXPR         {$$ = new DivideOperator($1, $3);}
 ;
 ARITH_FINAL_EXPR:       '(' EXPR ')'                                {$$ = $2}
-|                       NUM                                         {$$ = new IntValueNode($1.c_str());}
+|                       NUM                                         {$$ = new IntValueNode($1);}
+|                       STRING_CONST                                {$$ = new StringValueNode($1);}
 |                       VAR                                         {$$ = new VariableNode($1);}
 |                       RET_FUNCTION_CALL
 |                       '-' ARITH_FINAL_EXPR                        {$$ = new UnaryMinusOperator($2);}

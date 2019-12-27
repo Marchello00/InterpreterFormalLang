@@ -75,9 +75,13 @@
                             return NUM;
                         }
 [ \t\r\n]               ;
+read_word               return READ_WORD;
+read_line               return READ_LINE;
 read_int                return READ_INT;
 write                   return WRITE;
+write_line              return WRITE_LINE;
 int                     return INT;
+string                  return STRING;
 if                      return IF;
 else                    return ELSE;
 while                   return WHILE;
@@ -96,6 +100,14 @@ exit                    return EXIT;
 [|][|]                  return OR;
 =                       return ASSIGN;
 [-*+/{};(),]            return *yytext;
+[\"]                    { yylval = ""; BEGIN(STR); }
+<STR>\\\\               { yylval += '\\'; }
+<STR>\\n                { yylval += '\n'; }
+<STR>\n                 { yylval += '\n'; }
+<STR>\\t                { yylval += '\t'; }
+<STR>\\[\"]             { yylval += '\"'; }
+<STR>[^\"]              { yylval += yytext; }
+<STR>[\"]               { BEGIN(INITIAL); return STRING_CONST; }
 .                       {
                             flex_interpreter.atStart = true;
                             yyerror(nullptr, "Invalid character");

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <enums.h>
+#include <sstream>
 
 class Value {
 public:
@@ -18,6 +19,10 @@ public:
 
     int &operator*() {
         return *std::static_pointer_cast<int>(val_);
+    }
+
+    void load_str(const std::string &str) {
+        val_ = std::make_shared<std::string>(str);
     }
 
     TypeIdentifyer type() const {
@@ -62,7 +67,7 @@ public:
     }
 
     void leave_local_level() {
-        for (const auto& name : local_.back()) {
+        for (const auto &name : local_.back()) {
             vars_.erase(name);
         }
         local_.pop_back();
@@ -98,35 +103,84 @@ public:
         return regs_[num];
     }
 
+    void read_line() {
+        std::string s;
+        while (!getline(buffer_, s) && !is_eof_()) {
+            buffer_.clear();
+            read_buffer_();
+        }
+        push(TypeIdentifyer::STRING_T);
+        top().load_str(s);
+    }
+
+    void read_word() {
+        std::string s;
+        while (!(buffer_ >> s) && !is_eof_()) {
+            buffer_.clear();
+            read_buffer_();
+        }
+        push(TypeIdentifyer::STRING_T);
+        top().load_str(s);
+    }
+
     void read_int() {
-        std::string sval = read_();
-        int val = std::strtol(sval.c_str(), nullptr, 10);
+        int val = -1;
+        while (!(buffer_ >> val) && !is_eof_()) {
+            buffer_.clear();
+            read_buffer_();
+        }
         push(TypeIdentifyer::INT_T);
         top() = val;
     }
 
     void write() {
-        if (top().type() == TypeIdentifyer::INT_T) {
-            int val = *top();
-            out_ << val << "\n";
-            pop();
+        switch (top().type()) {
+            case TypeIdentifyer::INT_T: {
+                int val = *top();
+                out_ << val;
+                pop();
+                break;
+            }
+            case TypeIdentifyer::STRING_T: {
+                out_ << *std::static_pointer_cast<std::string>(top().pval());
+                pop();
+                break;
+            }
         }
+    }
+
+    void write(const std::string &s) {
+        push(TypeIdentifyer::STRING_T);
+        top().load_str(s);
+        write();
     }
 
 private:
     std::unordered_map<std::string, Value> vars_;
     std::unordered_map<IndexT, Value> regs_;
+
     std::vector<Value> tmp_;
 
     std::vector<std::vector<std::string>> local_;
-
     std::istream &in_;
+
     std::ostream &out_;
 
-    std::string read_() {
+    std::stringstream buffer_;
+
+    bool eof_ = false;
+
+    bool is_eof_() const {
+        return eof_;
+    }
+
+    void read_buffer_() {
         std::string s;
         std::getline(in_, s);
-        return s;
+        buffer_ << s;
+        if (in_.eof()) {
+            eof_ = true;
+        }
     }
 };
 
