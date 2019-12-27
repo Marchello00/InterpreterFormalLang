@@ -100,7 +100,7 @@ exit                    return EXIT;
 &&                      return AND;
 [|][|]                  return OR;
 =                       return ASSIGN;
-[-*+/{};(),]            return *yytext;
+[-*+%/{};(),]            return *yytext;
 [\"]                    { yylval = ""; BEGIN(STR); }
 <STR>\\\\               { yylval += '\\'; }
 <STR>\\n                { yylval += '\n'; }

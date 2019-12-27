@@ -120,6 +120,7 @@ ARITH_EXPR:             ARITH_MUL_EXPR
 ARITH_MUL_EXPR:         ARITH_FINAL_EXPR
 |                       ARITH_FINAL_EXPR '*' ARITH_MUL_EXPR         {$$ = new MultOperator($1, $3);}
 |                       ARITH_FINAL_EXPR '/' ARITH_MUL_EXPR         {$$ = new DivideOperator($1, $3);}
+|                       ARITH_FINAL_EXPR '%' ARITH_MUL_EXPR         {$$ = new ModOperator($1, $3);}
 ;
 ARITH_FINAL_EXPR:       '(' EXPR ')'                                {$$ = $2}
 |                       NUM                                         {$$ = new IntValueNode($1);}

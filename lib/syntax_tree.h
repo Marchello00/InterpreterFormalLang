@@ -458,6 +458,33 @@ public:
     }
 };
 
+class ModOperator : public BinaryOperator {
+public:
+    ModOperator(ExpressionNode *left, ExpressionNode *right) :
+            BinaryOperator(left, right, "/") {}
+
+    void evaluate(Machine &machine) override {
+        BinaryOperator::evaluate(machine);
+        auto &fval = machine.top(1);
+        auto &sval = machine.top(0);
+        if (fval.type() == TypeIdentifyer::INT_T &&
+            sval.type() == TypeIdentifyer::INT_T) {
+            int fval_v = *fval;
+            int sval_v = *sval;
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            if (*sval == 0) {
+                throw std::runtime_error("Division by zero.");
+            }
+            *machine.top() = fval_v % sval_v;
+        } else {
+            throw std::invalid_argument(NOT_INT);
+        }
+    }
+};
+
+
 class AndOperator : public BinaryOperator {
 public:
     AndOperator(ExpressionNode *left, ExpressionNode *right) :
