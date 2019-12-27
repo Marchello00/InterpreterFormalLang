@@ -92,6 +92,7 @@ exit                    return EXIT;
                             return VAR;
                         }
 ==                      return EQ;
+!=                      return NOT_EQ;
 [<]=                    return LESS_EQ;
 >=                      return GR_EQ;
 [<]                     return LESS;

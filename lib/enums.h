@@ -20,5 +20,6 @@ enum class TypeIdentifyer {
 const std::string NOT_INT = "Not int in int expression";
 const std::string NOT_BOOL_INT = "Not int and not boolean in bool expression";
 const std::string VAR_NEQ_EXPR = "Variable and expression types are different";
+const std::string CANT_READ =  "Can't read required type!";
 
 #endif //INTERPRETER_ENUMS_H

@@ -114,8 +114,7 @@ public:
     void read_line() {
         std::string s;
         while (!getline(buffer_, s) && !is_eof_()) {
-            buffer_.clear();
-            read_buffer_();
+            buff_check_();
         }
         push(TypeIdentifyer::STRING_T);
         top().load_str(s);
@@ -124,18 +123,16 @@ public:
     void read_word() {
         std::string s;
         while (!(buffer_ >> s) && !is_eof_()) {
-            buffer_.clear();
-            read_buffer_();
+            buff_check_();
         }
         push(TypeIdentifyer::STRING_T);
         top().load_str(s);
     }
 
     void read_int() {
-        int val = -1;
+        int val = 0;
         while (!(buffer_ >> val) && !is_eof_()) {
-            buffer_.clear();
-            read_buffer_();
+            buff_check_();
         }
         push(TypeIdentifyer::INT_T);
         top() = val;
@@ -188,6 +185,16 @@ private:
         buffer_ << s;
         if (in_.eof()) {
             eof_ = true;
+        }
+    }
+
+    void buff_check_() {
+        if (buffer_.eof()) {
+            buffer_.clear();
+            read_buffer_();
+        } else {
+            buffer_.clear();
+            throw std::invalid_argument(CANT_READ);
         }
     }
 };

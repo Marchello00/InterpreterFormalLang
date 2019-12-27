@@ -1,0 +1,3 @@
+int a = read_int();
+int b = read_int();
+write_line(a + b);

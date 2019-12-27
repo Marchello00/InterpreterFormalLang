@@ -409,8 +409,13 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v * sval_v;
-        }  else if (fval.type() == TypeIdentifyer::STRING_T &&
-                    sval.type() == TypeIdentifyer::INT_T) {
+        } else if ((fval.type() == TypeIdentifyer::STRING_T &&
+                    sval.type() == TypeIdentifyer::INT_T) ||
+                    (fval.type() == TypeIdentifyer::INT_T &&
+                    sval.type() ==  TypeIdentifyer::STRING_T)) {
+            if (sval.type() == TypeIdentifyer::STRING_T) {
+                std::swap(fval, sval);
+            }
             std::string fval_v = fval.get_str();
             int sval_v = *sval;
             machine.pop();
@@ -516,8 +521,16 @@ public:
             machine.pop();
             machine.push(TypeIdentifyer::INT_T);
             *machine.top() = fval_v == sval_v;
+        } else if (fval.type() == TypeIdentifyer::STRING_T &&
+                   sval.type() == TypeIdentifyer::STRING_T) {
+            std::string fval_v = fval.get_str();
+            std::string sval_v = sval.get_str();
+            machine.pop();
+            machine.pop();
+            machine.push(TypeIdentifyer::INT_T);
+            *machine.top() = fval_v == sval_v;
         } else {
-            throw std::invalid_argument(NOT_BOOL_INT);
+            throw std::invalid_argument(NOT_INT);
         }
     }
 };
