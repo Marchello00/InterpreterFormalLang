@@ -1,0 +1,9 @@
+#include <random>
+#include <algorithm>
+#include <machine.h>
+#include <syntax_tree.h>
+#include <interpreter.h>
+
+TEST(Machine, Creating) {
+    Machine machine;
+}
