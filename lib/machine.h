@@ -2,9 +2,12 @@
 #define INTERPRETER_MACHINE_H
 
 #include <unordered_map>
+#include <iostream>
+#include <string>
 #include <vector>
-#include <enums.h>
+#include <memory>
 #include <sstream>
+#include <enums.h>
 
 class Value {
 public:

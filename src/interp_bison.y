@@ -1,8 +1,12 @@
 %{
-    #include <parser.h>
-    #include <syntax_tree.h>
     #include <iostream>
     #include <cstdlib>
+    #include <cstdio>
+    #include <string>
+    #include <enums.h>
+    #include <parser.h>
+    #include <syntax_tree.h>
+    #include <interpreter.h>
 
     extern int yylineno;
     extern int yylex();
@@ -122,7 +126,7 @@ ARITH_MUL_EXPR:         ARITH_FINAL_EXPR
 |                       ARITH_FINAL_EXPR '/' ARITH_MUL_EXPR         {$$ = new DivideOperator($1, $3);}
 |                       ARITH_FINAL_EXPR '%' ARITH_MUL_EXPR         {$$ = new ModOperator($1, $3);}
 ;
-ARITH_FINAL_EXPR:       '(' EXPR ')'                                {$$ = $2}
+ARITH_FINAL_EXPR:       '(' EXPR ')'                                {$$ = $2;}
 |                       NUM                                         {$$ = new IntValueNode($1);}
 |                       STRING_CONST                                {$$ = new StringValueNode($1);}
 |                       VAR                                         {$$ = new VariableNode($1);}

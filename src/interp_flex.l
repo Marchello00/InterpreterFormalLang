@@ -1,10 +1,13 @@
 %{
-    #include <parser.h>
-    #include <interpreter.h>
+    #include <iostream>
+    #include <cstdio>
+    #include <cstdlib>
     #include <string>
     #define YYSTYPE std::string
     #include "interp_bison.hpp"
     #include <syntax_tree.h>
+    #include <parser.h>
+    #include <interpreter.h>
     void yyerror(Interpreter *interpreter, const std::string &s);
 
     bool set_file(char *filename = nullptr) {

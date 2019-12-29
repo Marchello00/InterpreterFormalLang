@@ -2,7 +2,9 @@
 #define INTERPRETER_INTERPRETER_H
 
 #include <iostream>
+#include <string>
 #include <syntax_tree.h>
+#include <machine.h>
 
 struct FlexInterpreter {
     const std::string ps1 = ">>>  "; // prompt to start statement

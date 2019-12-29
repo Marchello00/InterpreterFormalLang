@@ -2,6 +2,8 @@
 #ifndef INTERPRETER_ENUMS_H
 #define INTERPRETER_ENUMS_H
 
+#include <string>
+
 enum class NodeType {
     OPERATOR,
     COMMAND,

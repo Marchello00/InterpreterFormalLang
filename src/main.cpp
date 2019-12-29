@@ -1,8 +1,8 @@
 #include <iostream>
+#include <fstream>
 #include <syntax_tree.h>
 #include <machine.h>
 #include <parser.h>
-#include <fstream>
 #include <interpreter.h>
 
 std::string interactive_hello() {
