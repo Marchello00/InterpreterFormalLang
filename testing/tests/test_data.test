@@ -1,9 +1,140 @@
 #include <random>
 #include <algorithm>
+#include <iostream>
+#include <sstream>
 #include <machine.h>
 #include <syntax_tree.h>
 #include <interpreter.h>
 
-TEST(Machine, Creating) {
+TEST(machine_Value, Creating) {
+    Value value;
+    Value int_value(TypeIdentifyer::INT_T);
+    Value str_value(TypeIdentifyer::STRING_T);
+}
+
+TEST(machine_Value, Type) {
+    Value int_value(TypeIdentifyer::INT_T);
+    EXPECT_EQ(int_value.type(), TypeIdentifyer::INT_T);
+    Value str_value(TypeIdentifyer::STRING_T);
+    EXPECT_EQ(str_value.type(), TypeIdentifyer::STRING_T);
+}
+
+TEST(machine_Value, Pointer) {
+    Value value;
+    const int NUM = 10;
+    value.pval() = std::make_shared<int>(NUM);
+    EXPECT_EQ(*std::static_pointer_cast<int>(value.pval()), NUM);
+    const std::string STR = "Test string 123";
+    value.pval() = std::make_shared<std::string>(STR);
+    EXPECT_EQ(*std::static_pointer_cast<std::string>(value.pval()), STR);
+}
+
+TEST(machine_Value, IntPtrOperations) {
+    Value value(TypeIdentifyer::INT_T);
+    const int NUM = 538594;
+    *value = NUM;
+    EXPECT_EQ(*value, NUM);
+    EXPECT_EQ(*std::static_pointer_cast<int>(value.pval()), NUM);
+    const int NUM2 = -143;
+    *value = NUM2;
+    EXPECT_EQ(*value, NUM2);
+    EXPECT_EQ(*std::static_pointer_cast<int>(value.pval()), NUM2);
+}
+
+TEST(machine_Value, IntOperations) {
+    Value value(TypeIdentifyer::INT_T);
+    const int NUM = 538594;
+    value = NUM;
+    EXPECT_EQ(*value, NUM);
+    EXPECT_EQ(*std::static_pointer_cast<int>(value.pval()), NUM);
+    const int NUM2 = -143;
+    value = NUM2;
+    EXPECT_EQ(*value, NUM2);
+    EXPECT_EQ(*std::static_pointer_cast<int>(value.pval()), NUM2);
+}
+
+TEST(machine_Value, StringOperations) {
+    Value value(TypeIdentifyer::STRING_T);
+    const std::string STR = "Hello, test!\n";
+    value.load_str(STR);
+    EXPECT_EQ(value.get_str(), STR);
+    EXPECT_EQ(*std::static_pointer_cast<std::string>(value.pval()), STR);
+    const std::string STR2 = "Hello, new test!\n";
+    value.get_str() = STR2;
+    EXPECT_EQ(value.get_str(), STR2);
+    EXPECT_EQ(*std::static_pointer_cast<std::string>(value.pval()), STR2);
+}
+
+TEST(machine_Machine, Creating) {
     Machine machine;
+    std::stringstream in, out;
+    Machine machine1(in);
+    Machine machine2(in, out);
+}
+
+TEST(machine_Machine, AddVariable) {
+    Machine machine;
+    const std::string NAME = "int_var";
+    machine.add(TypeIdentifyer::INT_T, NAME);
+    EXPECT_THROW(machine.add(TypeIdentifyer::INT_T, NAME),
+                 std::invalid_argument);
+    EXPECT_THROW(machine.add(TypeIdentifyer::STRING_T, NAME),
+                 std::invalid_argument);
+    const std::string NAME2 = "yet_another_var";
+    machine.add(TypeIdentifyer::STRING_T, NAME2);
+    EXPECT_THROW(machine.add(TypeIdentifyer::INT_T, NAME2),
+                 std::invalid_argument);
+    EXPECT_THROW(machine.add(TypeIdentifyer::STRING_T, NAME2),
+                 std::invalid_argument);
+}
+
+TEST(machine_Machine, GetVariable) {
+    Machine machine;
+    const std::string NAME = "int_var";
+    EXPECT_THROW(machine.get(NAME), std::invalid_argument);
+    machine.add(TypeIdentifyer::INT_T, NAME);
+    Value val(TypeIdentifyer::INT_T);
+    const int NUM = 100500;
+    val = NUM;
+    machine.get(NAME) = val;
+    EXPECT_EQ(machine.get(NAME).pval(), val.pval());
+    const std::string NAME2 = "str_var";
+    Value str_val(TypeIdentifyer::INT_T);
+    const std::string STR = "var+val=test";
+    str_val.load_str(STR);
+    EXPECT_THROW(machine.get(NAME2), std::invalid_argument);
+    machine.add(TypeIdentifyer::STRING_T, NAME2);
+    machine.get(NAME2) = str_val;
+    EXPECT_EQ(machine.get(NAME2).pval(), str_val.pval());
+}
+
+TEST(machine_Machine, LocalLevel) {
+    Machine machine;
+    const std::string NAME = "name";
+    auto iname = [&](int i) {
+        return NAME + std::to_string(i);
+    };
+    const int REPEAT = 10;
+    EXPECT_THROW(machine.leave_local_level(), std::underflow_error);
+    for (int i = 0; i < REPEAT; ++i) {
+        for (int j = 0; j < i; ++j) {
+            machine.get(iname(j));
+        }
+        for (int j = i; j < REPEAT; ++j) {
+            EXPECT_THROW(machine.get(iname(j)), std::invalid_argument);
+        }
+        machine.add(TypeIdentifyer::INT_T, iname(i));
+        machine.get(iname(i));
+        machine.enter_local_level();
+    }
+    for (int i = REPEAT - 1; i >= 0; --i) {
+        for (int j = 0; j <= i; ++j) {
+            machine.get(iname(j));
+        }
+        machine.leave_local_level();
+        for (int j = i + 1; j < REPEAT; ++j) {
+            EXPECT_THROW(machine.get(iname(j)), std::invalid_argument);
+        }
+    }
+    EXPECT_THROW(machine.leave_local_level(), std::underflow_error);
 }

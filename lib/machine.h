@@ -36,7 +36,7 @@ public:
         return type_;
     }
 
-    Value() : type_(TypeIdentifyer::INT_T), val_(new int(0)) {}
+    Value() : type_(TypeIdentifyer::INT_T), val_(std::make_shared<int>(0)) {}
 
     explicit Value(TypeIdentifyer type) :
             type_(type) {
@@ -78,6 +78,9 @@ public:
     }
 
     void leave_local_level() {
+        if (local_.size() == 1) {
+            throw std::underflow_error("No local level to leave");
+        }
         for (const auto &name : local_.back()) {
             vars_.erase(name);
         }
