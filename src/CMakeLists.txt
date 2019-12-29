@@ -41,7 +41,7 @@ ENDMACRO(LEX_FILE)
 YACC_FILE(interp_bison.y)
 LEX_FILE(interp_flex.l)
 
-add_library(parser STATIC interp_bison.hpp interp_bison.cpp interp_flex.cpp)
+add_library(parser STATIC interp_bison.cpp interp_flex.cpp)
 
 add_executable(interpreter main.cpp)
 

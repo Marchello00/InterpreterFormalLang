@@ -6,7 +6,7 @@
 #include <interpreter.h>
 
 std::string interactive_hello() {
-    return "Hello, You are in interaction version of interpreter. Just enter commands like in python interpreter.\n" +
+    return "Hello, You are in interaction version of interpreter. Just enter commands like in python interpreter, and don't forget about ';'.\n" +
            flex_interpreter.ps1;
 }
 
