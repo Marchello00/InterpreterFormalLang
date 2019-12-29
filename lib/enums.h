@@ -1,4 +1,3 @@
-#pragma once
 #ifndef INTERPRETER_ENUMS_H
 #define INTERPRETER_ENUMS_H
 

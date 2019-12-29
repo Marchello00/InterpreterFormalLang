@@ -3,10 +3,12 @@
     #include <cstdio>
     #include <cstdlib>
     #include <string>
-    #define YYSTYPE std::string
+    #include <parser.h>
+
+    #define YYSTYPE YYSTYPE_struct
+
     #include "interp_bison.hpp"
     #include <syntax_tree.h>
-    #include <parser.h>
     #include <interpreter.h>
     void yyerror(Interpreter *interpreter, const std::string &s);
 
@@ -74,7 +76,7 @@
 <COMMENT>[*][/]         { BEGIN(INITIAL); flex_interpreter.atStart = true; }
 <COMMENT>.              ;
 [0-9]+                  {
-                            yylval = yytext;
+                            yylval.str = yytext;
                             return NUM;
                         }
 [ \t\r\n]               ;
@@ -91,7 +93,7 @@ while                   return WHILE;
 for                     return FOR;
 exit                    return EXIT;
 [a-zA-Z_][a-zA-Z0-9_]*  {
-                            yylval = yytext;
+                            yylval.str = yytext;
                             return VAR;
                         }
 ==                      return EQ;
@@ -103,14 +105,14 @@ exit                    return EXIT;
 &&                      return AND;
 [|][|]                  return OR;
 =                       return ASSIGN;
-[-*+%/{};(),]            return *yytext;
-[\"]                    { yylval = ""; BEGIN(STR); }
-<STR>\\\\               { yylval += '\\'; }
-<STR>\\n                { yylval += '\n'; }
-<STR>\n                 { yylval += '\n'; }
-<STR>\\t                { yylval += '\t'; }
-<STR>\\[\"]             { yylval += '\"'; }
-<STR>[^\"]              { yylval += yytext; }
+[-*+%/{};(),]           return *yytext;
+[\"]                    { yylval.str = ""; BEGIN(STR); }
+<STR>\\\\               { yylval.str += '\\'; }
+<STR>\\n                { yylval.str += '\n'; }
+<STR>\n                 { yylval.str += '\n'; }
+<STR>\\t                { yylval.str += '\t'; }
+<STR>\\[\"]             { yylval.str += '\"'; }
+<STR>[^\"]              { yylval.str += yytext; }
 <STR>[\"]               { BEGIN(INITIAL); return STRING_CONST; }
 .                       {
                             flex_interpreter.atStart = true;

@@ -21,7 +21,7 @@ MACRO(YACC_FILE _filename)
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.h
             COMMAND ${YACC_EXE} -tvd
-            --output=${_basename}.cpp
+            -o${_basename}.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
             DEPENDS ${_filename}
     )
@@ -35,13 +35,13 @@ MACRO(LEX_FILE _filename)
             COMMAND ${LEX_EXE}
             -o${_basename}.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
-            DEPENDS ${_filename})
+            DEPENDS ${_filename} ${CMAKE_CURRENT_BINARY_DIR}/interp_bison.cpp)
 ENDMACRO(LEX_FILE)
 
 YACC_FILE(interp_bison.y)
 LEX_FILE(interp_flex.l)
 
-add_library(parser STATIC interp_bison.cpp interp_flex.cpp)
+add_library(parser STATIC interp_bison.hpp interp_bison.cpp interp_flex.cpp)
 
 add_executable(interpreter main.cpp)
 

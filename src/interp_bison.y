@@ -15,15 +15,6 @@
         std::cerr << s << "\n";
     }
 
-    typedef struct {
-        std::string str;
-        ExpressionNode *expr;
-        CmdNode *cmd;
-        CmdListNode *cmd_list;
-        OperatorNode  *oper;
-        TypeNode *var_type;
-    } YYSTYPE_struct;
-
     #define YYSTYPE YYSTYPE_struct
 %}
 
