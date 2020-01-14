@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(CMAKE_CXX_STANDARD 14)
-
 find_program(LEX_EXE
         flex
         )
@@ -22,8 +20,8 @@ MACRO(YACC_FILE _filename)
     ADD_CUSTOM_COMMAND(
             OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.cpp
             ${CMAKE_CURRENT_BINARY_DIR}/${_basename}.h
-            COMMAND ${YACC_EXE} -td
-            --output=${_basename}.cpp
+            COMMAND ${YACC_EXE} -tvd
+            -o${_basename}.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
             DEPENDS ${_filename}
     )
@@ -37,16 +35,16 @@ MACRO(LEX_FILE _filename)
             COMMAND ${LEX_EXE}
             -o${_basename}.cpp
             ${CMAKE_CURRENT_SOURCE_DIR}/${_filename}
-            DEPENDS ${_filename})
+            DEPENDS ${_filename} ${CMAKE_CURRENT_BINARY_DIR}/interp_bison.cpp)
 ENDMACRO(LEX_FILE)
 
 YACC_FILE(interp_bison.y)
 LEX_FILE(interp_flex.l)
 
-add_executable(interpreter
-        interp_bison.cpp
-        interp_flex.cpp
-        main.cpp
-        )
+add_library(parser STATIC interp_bison.cpp interp_flex.cpp)
 
-target_compile_options(interpreter PRIVATE -Wno-deprecated-register)
+add_executable(interpreter main.cpp)
+
+target_link_libraries(interpreter parser)
+
+target_compile_options(parser PRIVATE -Wno-deprecated-register)

@@ -1,0 +1,15 @@
+int number = read_int();
+int degree = read_int();
+int rev_degree = 1;
+for (; degree != 0; degree = degree / 2) {
+    rev_degree = rev_degree * 2;
+    rev_degree = rev_degree + degree % 2;
+}
+int result = 1;
+for (; rev_degree != 1; rev_degree = rev_degree / 2) {
+    result = result * result;
+    if (rev_degree % 2) {
+        result = result * number;
+    }
+}
+write_line(result);
